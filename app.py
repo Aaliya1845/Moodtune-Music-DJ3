@@ -8,59 +8,75 @@ st.set_page_config(
     layout="wide"
 )
 
-# Black Theme
+# BLACK THEME
+
 st.markdown("""
 <style>
+
 .stApp{
+
 background-color:#000000;
 color:white;
+
 }
 
 h1,h2,h3,p,label{
+
 color:white;
+
 }
 
 .stButton>button{
+
 background:#1DB954;
 color:white;
 border-radius:10px;
+
 }
+
 </style>
+
 """,unsafe_allow_html=True)
 
-# Load CSV
+
+# LOAD DATASET
 
 songs = pd.read_csv("songs.csv")
 
-songs.columns = songs.columns.str.lower()
+songs.columns=songs.columns.str.lower()
 
-# Emotion Detection
+
+
+# EMOTION DETECTION
 
 def detect_emotion(text):
 
-    text = text.lower()
+    text=text.lower()
 
-    happy = [
-        "happy","love","good",
-        "awesome","great",
-        "joy","excited"
+    happy=[
+    "happy","love",
+    "good","awesome",
+    "great","joy",
+    "excited"
     ]
 
-    sad = [
-        "sad","cry",
-        "hurt","lonely",
-        "depressed"
+    sad=[
+    "sad","cry",
+    "hurt","lonely",
+    "depressed"
     ]
 
-    calm = [
-        "calm","peace",
-        "relax","spiritual"
+    calm=[
+    "calm","peace",
+    "relax","spiritual"
     ]
 
-    angry = [
-        "angry","mad",
-        "hate"
+    angry=[
+    "angry",
+    "mad",
+    "hate"
     ]
+
 
     for i in happy:
 
@@ -86,157 +102,328 @@ def detect_emotion(text):
 
             return "angry"
 
-    return "happy"
+    return "neutral"
 
 
-# Recommend Songs
+
+# RECOMMEND
 
 def recommend(
-    emotion,
-    language,
-    category,
-    singer
+
+emotion,
+
+language,
+
+category,
+
+singer
+
 ):
 
-    rec = songs.copy()
+    rec=songs.copy()
 
     if emotion!="All":
 
-        rec = rec[
-            rec["emotion"]
-            .str.lower()
-            ==
-            emotion.lower()
+        rec=rec[
+        rec["emotion"]
+        .str.lower()
+        ==
+        emotion.lower()
         ]
+
 
     if language!="All":
 
-        rec = rec[
-            rec["language"]
-            .str.lower()
-            ==
-            language.lower()
+        rec=rec[
+        rec["language"]
+        .str.lower()
+        ==
+        language.lower()
         ]
+
 
     if category!="All":
 
-        rec = rec[
-            rec["category"]
-            .str.lower()
-            ==
-            category.lower()
+        rec=rec[
+        rec["category"]
+        .str.lower()
+        ==
+        category.lower()
         ]
+
 
     if singer!="All":
 
-        rec = rec[
-            rec["artist"]
-            .str.lower()
-            ==
-            singer.lower()
+        rec=rec[
+        rec["artist"]
+        .str.lower()
+        ==
+        singer.lower()
         ]
+
+
 
     if len(rec)==0:
 
         return None
 
     return rec.sample(
-        min(
-            10,
-            len(rec)
-        )
+
+    min(
+
+    10,
+
+    len(rec)
+
     )
 
+    )
+
+
+
+
+# TITLE
 
 st.title("🎵 MoodTune Music DJ")
 
 st.write(
+
 "AI Emotion Based Music Recommendation"
-)
-
-# Sidebar
-
-language = st.sidebar.selectbox(
-
-    "Language",
-
-    [
-        "All",
-        "Hindi",
-        "Punjabi",
-        "English"
-    ]
-
-)
-
-category = st.sidebar.selectbox(
-
-    "Category",
-
-    [
-
-        "All",
-
-        "party",
-
-        "heartbroken",
-
-        "travel",
-
-        "friendship",
-
-        "qawwali",
-
-        "romantic",
-
-        "motivational"
-
-    ]
-
-)
-
-singer = st.sidebar.selectbox(
-
-    "Singer",
-
-    ["All"]+
-
-    sorted(
-
-        songs["artist"]
-
-        .unique()
-
-    )
 
 )
 
 
-# TEXT
+
+# SIDEBAR
+
+language=st.sidebar.selectbox(
+
+"Language",
+
+[
+
+"All",
+
+"Hindi",
+
+"Punjabi",
+
+"English"
+
+]
+
+)
+
+
+
+category=st.sidebar.selectbox(
+
+"Category",
+
+[
+
+"All",
+
+"party",
+
+"heartbroken",
+
+"travel",
+
+"friendship",
+
+"qawwali",
+
+"romantic",
+
+"motivational",
+
+"sad"
+
+]
+
+)
+
+
+
+singer=st.sidebar.selectbox(
+
+"Singer",
+
+["All"]
+
++
+
+sorted(
+
+songs["artist"]
+
+.unique()
+
+)
+
+)
+
+
+
+
+# TEXT INPUT
 
 st.header("✍ Text Mood")
 
-text = st.text_input(
+text=st.text_input(
 
-    "How are you feeling today?"
+"How are you feeling today?"
 
 )
 
+
+
 if st.button(
 
-    "Recommend Songs"
+"Recommend Songs"
 
 ):
 
-    emotion = detect_emotion(text)
+    emotion=detect_emotion(text)
 
     st.success(
 
-        f"Detected Mood : {emotion}"
+    f"Detected Mood : {emotion}"
 
     )
 
-    rec = recommend(
+
+    rec=recommend(
+
+    emotion,
+
+    language,
+
+    category,
+
+    singer
+
+    )
+
+
+    if rec is not None:
+
+
+        for _,row in rec.iterrows():
+
+            st.write(
+
+            "🎵",
+
+            row["song"]
+
+            )
+
+
+            st.write(
+
+            "🎤",
+
+            row["artist"]
+
+            )
+
+
+            st.write(
+
+            "😊",
+
+            row["emotion"]
+
+            )
+
+
+            st.write(
+
+            "🎼",
+
+            row["category"]
+
+            )
+
+
+            st.link_button(
+
+            "▶ Play on YouTube",
+
+            row["youtube"]
+
+            )
+
+
+            st.divider()
+
+
+    else:
+
+        st.warning(
+
+        "No songs found"
+
+        )
+
+
+
+# VOICE
+
+st.header("🎤 Voice Mood")
+
+
+audio=st.file_uploader(
+
+"Upload WAV File",
+
+type=["wav"]
+
+)
+
+
+
+if st.button(
+
+"Recommend From Voice"
+
+):
+
+    if audio:
+
+        r=sr.Recognizer()
+
+
+        with sr.AudioFile(audio) as source:
+
+            data=r.record(source)
+
+
+        text=r.recognize_google(data)
+
+
+        st.write(
+
+        "Recognized Text :",
+
+        text
+
+        )
+
+
+        emotion=detect_emotion(text)
+
+
+        st.success(
+
+        f"Detected Mood : {emotion}"
+
+        )
+
+
+        rec=recommend(
 
         emotion,
 
@@ -246,129 +433,39 @@ if st.button(
 
         singer
 
-    )
-
-    if rec is not None:
-
-        for _,row in rec.iterrows():
-
-            st.write(
-
-                "🎵",
-
-                row["song"]
-
-            )
-
-            st.write(
-
-                "🎤",
-
-                row["artist"]
-
-            )
-
-            st.link_button(
-
-                "▶ Play on YouTube",
-
-                row["youtube"]
-
-            )
-
-            st.divider()
-
-    else:
-
-        st.warning(
-
-            "No songs found"
-
         )
 
-
-# VOICE
-
-st.header("🎤 Voice Mood")
-
-audio = st.file_uploader(
-
-    "Upload WAV File",
-
-    type=["wav"]
-
-)
-
-if st.button(
-
-    "Recommend From Voice"
-
-):
-
-    if audio:
-
-        r = sr.Recognizer()
-
-        with sr.AudioFile(audio) as source:
-
-            data = r.record(source)
-
-        text = r.recognize_google(data)
-
-        st.write(
-
-            "Recognized Text :",
-
-            text
-
-        )
-
-        emotion = detect_emotion(text)
-
-        st.success(
-
-            f"Detected Mood : {emotion}"
-
-        )
-
-        rec = recommend(
-
-            emotion,
-
-            language,
-
-            category,
-
-            singer
-
-        )
 
         if rec is not None:
+
 
             for _,row in rec.iterrows():
 
                 st.write(
 
-                    "🎵",
+                "🎵",
 
-                    row["song"]
+                row["song"]
 
                 )
+
 
                 st.write(
 
-                    "🎤",
+                "🎤",
 
-                    row["artist"]
+                row["artist"]
 
                 )
+
 
                 st.link_button(
 
-                    "▶ Play on YouTube",
+                "▶ Play on YouTube",
 
-                    row["youtube"]
+                row["youtube"]
 
                 )
+
 
                 st.divider()
