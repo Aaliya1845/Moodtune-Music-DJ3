@@ -41,7 +41,7 @@ border-radius:10px;
 
 # LOAD DATASET
 
-songs = pd.read_csv("songs.csv")
+songs = pd.read_csv("songs_real.csv")
 
 songs.columns=songs.columns.str.lower()
 
