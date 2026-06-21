@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 import speech_recognition as sr
+import urllib.parse
+
+# ---------------- PAGE CONFIG ----------------
 
 st.set_page_config(
     page_title="MoodTune Music DJ",
@@ -8,75 +11,69 @@ st.set_page_config(
     layout="wide"
 )
 
-# BLACK THEME
+# ---------------- BLACK THEME ----------------
 
 st.markdown("""
 <style>
 
 .stApp{
-
 background-color:#000000;
 color:white;
-
 }
 
 h1,h2,h3,p,label{
-
 color:white;
-
 }
 
 .stButton>button{
-
 background:#1DB954;
 color:white;
-border-radius:10px;
+border-radius:12px;
+font-size:16px;
+}
 
+div[data-baseweb="select"]{
+color:black;
 }
 
 </style>
+""", unsafe_allow_html=True)
 
-""",unsafe_allow_html=True)
+# ---------------- LOAD DATASET ----------------
 
+songs = pd.read_csv("songs.csv")
 
-# LOAD DATASET
+songs.columns = songs.columns.str.lower()
 
-songs = pd.read_csv("songs_real.csv")
-
-songs.columns=songs.columns.str.lower()
-
-
-
-# EMOTION DETECTION
+# ---------------- MOOD DETECTION ----------------
 
 def detect_emotion(text):
 
-    text=text.lower()
+    text = text.lower()
 
-    happy=[
-    "happy","love",
-    "good","awesome",
-    "great","joy",
-    "excited"
+    happy = [
+        "happy","love","good",
+        "great","awesome",
+        "joy","excited"
     ]
 
-    sad=[
-    "sad","cry",
-    "hurt","lonely",
-    "depressed"
+    sad = [
+        "sad","cry",
+        "hurt","lonely",
+        "depressed"
     ]
 
-    calm=[
-    "calm","peace",
-    "relax","spiritual"
+    calm = [
+        "calm","peace",
+        "relax",
+        "spiritual"
     ]
 
-    angry=[
-    "angry",
-    "mad",
-    "hate"
+    angry = [
+        "angry",
+        "mad",
+        "hate"
     ]
-
 
     for i in happy:
 
@@ -102,11 +99,9 @@ def detect_emotion(text):
 
             return "angry"
 
-    return "neutral"
+    return "happy"
 
-
-
-# RECOMMEND
+# ---------------- RECOMMEND ----------------
 
 def recommend(
 
@@ -120,48 +115,63 @@ singer
 
 ):
 
-    rec=songs.copy()
+    rec = songs.copy()
 
-    if emotion!="All":
+    if emotion != "All":
 
-        rec=rec[
+        rec = rec[
+
         rec["emotion"]
+
         .str.lower()
+
         ==
+
         emotion.lower()
+
         ]
 
+    if language != "All":
 
-    if language!="All":
+        rec = rec[
 
-        rec=rec[
         rec["language"]
+
         .str.lower()
+
         ==
+
         language.lower()
+
         ]
 
+    if category != "All":
 
-    if category!="All":
+        rec = rec[
 
-        rec=rec[
         rec["category"]
+
         .str.lower()
+
         ==
+
         category.lower()
+
         ]
 
+    if singer != "All":
 
-    if singer!="All":
+        rec = rec[
 
-        rec=rec[
         rec["artist"]
+
         .str.lower()
+
         ==
+
         singer.lower()
+
         ]
-
-
 
     if len(rec)==0:
 
@@ -179,10 +189,7 @@ singer
 
     )
 
-
-
-
-# TITLE
+# ---------------- TITLE ----------------
 
 st.title("🎵 MoodTune Music DJ")
 
@@ -192,11 +199,9 @@ st.write(
 
 )
 
+# ---------------- SIDEBAR ----------------
 
-
-# SIDEBAR
-
-language=st.sidebar.selectbox(
+language = st.sidebar.selectbox(
 
 "Language",
 
@@ -214,9 +219,7 @@ language=st.sidebar.selectbox(
 
 )
 
-
-
-category=st.sidebar.selectbox(
+category = st.sidebar.selectbox(
 
 "Category",
 
@@ -244,9 +247,7 @@ category=st.sidebar.selectbox(
 
 )
 
-
-
-singer=st.sidebar.selectbox(
+singer = st.sidebar.selectbox(
 
 "Singer",
 
@@ -264,20 +265,15 @@ songs["artist"]
 
 )
 
-
-
-
-# TEXT INPUT
+# ---------------- TEXT INPUT ----------------
 
 st.header("✍ Text Mood")
 
-text=st.text_input(
+text = st.text_input(
 
 "How are you feeling today?"
 
 )
-
-
 
 if st.button(
 
@@ -285,7 +281,7 @@ if st.button(
 
 ):
 
-    emotion=detect_emotion(text)
+    emotion = detect_emotion(text)
 
     st.success(
 
@@ -293,8 +289,7 @@ if st.button(
 
     )
 
-
-    rec=recommend(
+    rec = recommend(
 
     emotion,
 
@@ -306,9 +301,7 @@ if st.button(
 
     )
 
-
     if rec is not None:
-
 
         for _,row in rec.iterrows():
 
@@ -320,7 +313,6 @@ if st.button(
 
             )
 
-
             st.write(
 
             "🎤",
@@ -328,7 +320,6 @@ if st.button(
             row["artist"]
 
             )
-
 
             st.write(
 
@@ -338,7 +329,6 @@ if st.button(
 
             )
 
-
             st.write(
 
             "🎼",
@@ -347,43 +337,49 @@ if st.button(
 
             )
 
+            query = urllib.parse.quote(
 
-            st.link_button(
-
-            "▶ Play on YouTube",
-
-            row["youtube"]
+            f"{row['song']} {row['artist']}"
 
             )
 
+            youtube_url = (
+
+            "https://www.youtube.com/results?"
+
+            f"search_query={query}"
+
+            )
+
+            st.link_button(
+
+            "▶ Play Song",
+
+            youtube_url
+
+            )
 
             st.divider()
-
 
     else:
 
         st.warning(
 
-        "No songs found"
+        "No Songs Found"
 
         )
 
-
-
-# VOICE
+# ---------------- VOICE INPUT ----------------
 
 st.header("🎤 Voice Mood")
 
-
-audio=st.file_uploader(
+audio = st.file_uploader(
 
 "Upload WAV File",
 
 type=["wav"]
 
 )
-
-
 
 if st.button(
 
@@ -393,16 +389,13 @@ if st.button(
 
     if audio:
 
-        r=sr.Recognizer()
-
+        r = sr.Recognizer()
 
         with sr.AudioFile(audio) as source:
 
-            data=r.record(source)
+            data = r.record(source)
 
-
-        text=r.recognize_google(data)
-
+        text = r.recognize_google(data)
 
         st.write(
 
@@ -412,9 +405,7 @@ if st.button(
 
         )
 
-
-        emotion=detect_emotion(text)
-
+        emotion = detect_emotion(text)
 
         st.success(
 
@@ -422,8 +413,7 @@ if st.button(
 
         )
 
-
-        rec=recommend(
+        rec = recommend(
 
         emotion,
 
@@ -435,9 +425,7 @@ if st.button(
 
         )
 
-
         if rec is not None:
-
 
             for _,row in rec.iterrows():
 
@@ -449,7 +437,6 @@ if st.button(
 
                 )
 
-
                 st.write(
 
                 "🎤",
@@ -458,14 +445,50 @@ if st.button(
 
                 )
 
+                st.write(
 
-                st.link_button(
+                "😊",
 
-                "▶ Play on YouTube",
-
-                row["youtube"]
+                row["emotion"]
 
                 )
 
+                st.write(
+
+                "🎼",
+
+                row["category"]
+
+                )
+
+                query = urllib.parse.quote(
+
+                f"{row['song']} {row['artist']}"
+
+                )
+
+                youtube_url = (
+
+                "https://www.youtube.com/results?"
+
+                f"search_query={query}"
+
+                )
+
+                st.link_button(
+
+                "▶ Play Song",
+
+                youtube_url
+
+                )
 
                 st.divider()
+
+        else:
+
+            st.warning(
+
+            "No Songs Found"
+
+            )
